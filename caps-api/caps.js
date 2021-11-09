@@ -3,6 +3,7 @@
 const io = require('socket.io-client');
 const express = require('express');
 const cors = require('cors');
+const faker = require('faker');
 
 const socket = io.connect('http://localhost:3000/caps');
 
@@ -14,10 +15,13 @@ app.use(express.urlencoded({extended:true}));
 const PORT = process.env.PORT || 3001;
 
 let delivery = {
-    store: 'Jeremys Paperclips',
-    orderID: 7,
-    customer: 'Jimbo',
-    address: '123 Smith St'
+    clientID: '12345',
+    eventName: 'event',
+    messageID: '987',
+    store: store,
+    orderID: faker.datatype.uuid(),
+    customer: faker.name.findName(),
+    address: faker.address.streetAddress()
 }
 
 app.post('/pickup', (req, res) => {
@@ -25,7 +29,6 @@ app.post('/pickup', (req, res) => {
         req.body = delivery;
     }
     socket.emit('pickup', req.body);
-    socket.emit('join', req.body.store);
     res.status(200).send(`Scheduled delivery for ${req.body}`);
 });
 
@@ -34,7 +37,6 @@ app.post('/in-transit', (req, res) => {
         req.body = delivery;
     }
     socket.emit('in-transit', req.body);
-    socket.emit('join', req.body.store);
     res.status(200).send(`Scheduled delivery for ${req.body}`);
 });
 
@@ -43,7 +45,23 @@ app.post('/delivered', (req, res) => {
         req.body = delivery;
     }
     socket.emit('delivered', req.body);
-    socket.emit('join', req.body.store);
+    res.status(200).send(`Scheduled delivery for ${req.body}`);
+    
+});
+
+app.post('/received', (req, res) => {
+    if(JSON.stringify(req.body) === '{}') {
+        req.body = delivery;
+    }
+    socket.emit('received', req.body);
+    res.status(200).send(`Scheduled delivery for ${req.body}`);
+});
+
+app.post('/get-all', (req, res) => {
+    if(JSON.stringify(req.body) === '{}') {
+        req.body = delivery;
+    }
+    socket.emit('get-all', req.body);
     res.status(200).send(`Scheduled delivery for ${req.body}`);
 });
 
